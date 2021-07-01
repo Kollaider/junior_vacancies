@@ -1,5 +1,5 @@
 {% extends "./base.html" %}
-{% load static %}
+{% load ru_pluralize %}
 
 {% block content %}
     <section>
@@ -14,12 +14,12 @@
               <button class="btn btn-primary w-100" type="submit">Найти</button>
             </div>
           </form>
-          <p>Например: 
-            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">Python</a> 
-            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">Flask</a> 
-            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">Django</a> 
-            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">Парсинг</a> 
-            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">ML</a> 
+          <p>Например:
+            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">Python</a>
+            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">Flask</a>
+            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">Django</a>
+            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">Парсинг</a>
+            <a href="#" class="text-dark border-bottom border-dark m-1 text-decoration-none">ML</a>
 
           </p>
         </div>
@@ -36,7 +36,7 @@
                 <img class="mx-auto d-block" src="{{ speciality.picture }}" alt="">
                 <div class="card-body">
                   <p class="card-text mb-2">{{ speciality.title }}</p>
-                  <p class="card-text"><a href="{% url 'vacancies_by_speciality' speciality.code %}">{{ speciality.count }} вакансий</a></p>
+                  <p class="card-text"><a href="{% url 'vacancies_by_speciality' speciality.code %}">{{ speciality.count|ru_pluralize:'вакансия, вакансии, вакансий' }}</a></p>
                 </div>
               </div>
             </div>
@@ -55,7 +55,7 @@
                   <img class="mx-auto d-block mw-100" src="{{ company.logo }}" alt="">
                 </a>
                 <div class="card-body">
-                  <p class="card-text"><a href="{{ company_url }}">{{ company.count }}</a></p>
+                  <p class="card-text"><a href="{{ company_url }}">{{ company.count|ru_pluralize:'вакансия, вакансии, вакансий' }}</a></p>
                 </div>
               </div>
             </div>
