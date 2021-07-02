@@ -1,9 +1,11 @@
 from django.db.models import Count
 from django.http import HttpResponseNotFound, HttpResponseServerError
-from django.shortcuts import get_object_or_404
-from django.views.generic import ListView, DetailView, TemplateView
+from django.shortcuts import get_object_or_404, render, redirect
+from django.views import View
+from django.views.generic import TemplateView, ListView, DetailView
 
-from vacancies.models import Company, Specialty, Vacancy
+from vacancies.forms import ApplicationForm
+from vacancies.models import Specialty, Company, Vacancy
 
 
 class MainView(TemplateView):
@@ -20,7 +22,7 @@ class MainView(TemplateView):
 class ListVacanciesByCompanyView(ListView):
     model = Vacancy
     context_object_name = 'vacancies'
-    template_name = 'vacancies/company.html'
+    template_name = 'vacancies/company/company.html'
 
     def get_queryset(self):
         return (
@@ -39,14 +41,46 @@ class ListVacanciesByCompanyView(ListView):
 class DetailVacancyView(DetailView):
     model = Vacancy
     context_object_name = 'vacancy'
-    template_name = 'vacancies/vacancy.html'
+    template_name = 'vacancies/vacancy/vacancy.html'
     queryset = model.objects.select_related('specialty', 'company')
+
+class VacancyWithApplicationView(View):
+    template_name = 'vacancies/vacancy/vacancy.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.vacancy = get_object_or_404(Vacancy, id=self.kwargs['pk'])
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        context = {
+            'vacancy': self.vacancy,
+            'application_form': ApplicationForm(),
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, *args, **kwargs):
+        application_form = ApplicationForm(request.POST)
+        application_form.instance.vacancy = self.vacancy
+        application_form.instance.user = request.user if request.user.is_authenticated else None
+        if application_form.is_valid():
+            application_form.save()
+            return redirect('application_send', self.vacancy.id)
+
+        return render(request, self.template_name, context={
+            'vacancy': self.vacancy,
+            'application_form': application_form,
+        })
+    # model = Vacancy
+    # context_object_name = 'vacancy'
+    #
+    # queryset = model.objects.select_related('specialty', 'company')
 
 
 class ListVacanciesView(ListView):
     model = Vacancy
     context_object_name = 'vacancies'
-    template_name = 'vacancies/vacancies.html'
+    template_name = 'vacancies/vacancy/vacancies.html'
     queryset = model.objects.select_related('specialty', 'company')
 
     def get_context_data(self, **kwargs):
@@ -59,7 +93,7 @@ class ListVacanciesView(ListView):
 class ListVacanciesBySpecialtyView(ListView):
     model = Vacancy
     context_object_name = 'vacancies'
-    template_name = 'vacancies/vacancies.html'
+    template_name = 'vacancies/vacancy/vacancies.html'
 
     def get_queryset(self):
         return (
@@ -71,6 +105,16 @@ class ListVacanciesBySpecialtyView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['vacancies_title'] = self.kwargs['specialty']
+
+        return context
+
+
+class ApplicationSendView(TemplateView):
+    template_name = 'vacancies/resume/../templates/vacancies/vacancy/applicatio_send.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['vacancy_pk'] = self.kwargs['pk']
 
         return context
 

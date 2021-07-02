@@ -1,0 +1,40 @@
+{% extends "./user_profile_base.html" %}
+{% load ru_pluralize %}
+{% block title %}Вакансии компании | Джуманджи{% endblock title %} }}
+
+
+{% block my_company_content %}
+        <div class="card">
+          <div class="card-body px-4 pb-4">
+            <section class="tab-pane fade show active">
+              <h2 class="h4 pt-2 pb-3">Вакансии</h2>
+                {% if vacancies|length == 0 %}
+                  <div class="alert alert-primary" role="alert">
+                        У вас пока нет вакансий, но вы можете создать первую!
+                  </div>
+                {% else %}
+                    {% for vacancy in vacancies %}
+                      <div class="card mt-3">
+                        <div class="card-body px-4">
+                          <div class="row align-items-center">
+                            <div class="col-6 col-lg-8">
+                              <a href="{% url 'vacancy' vacancy.id %}" class="mb-1">{{ vacancy.title }}</a>
+                              <p class="mb-1">
+                                <span class="mr-4">{{ vacancy.salary_min }} - {{ vacancy.salary_max }} руб.</span><a href="{% url 'my_vacancy_update' vacancy.id %}?#applications" class="text-info">{{ vacancy.applications.count|ru_pluralize:'отклик, отклика, откликов' }}</a>
+                              </p>
+                            </div>
+                            <div class="col-6 col-lg-4 text-right">
+                              <a href="{% url 'my_vacancy_update' vacancy.id %}" class="btn btn-outline-info">Изменить</a>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                {% endif %}
+                <div class="col mt-3 pl-0">
+                        <a href="{% url 'my_vacancy_create' %}" class="btn btn-info">Добавить вакансию</a>
+                </div>
+            </section>
+          </div>
+        </div>
+{% endblock my_company_content %}

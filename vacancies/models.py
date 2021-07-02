@@ -1,7 +1,28 @@
+from enum import Enum
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+
+
+
+
+
+
+class SpecialtyChoices(Enum):
+    frontend = 'Фронтенд'
+    backend = 'Бэкенд'
+    gamedev = 'Геймдев'
+    devops = 'Девопс'
+    design = 'Дизайн'
+    products = 'Продукты'
+    management = 'Менеджмент'
+    testing = 'Тестирование'
+
+
+
 
 
 class Company(models.Model):
@@ -17,7 +38,7 @@ class Company(models.Model):
         verbose_name_plural = 'Компании'
 
     def __str__(self):
-        return f"Company with pk={self.pk}"
+        return f"Company {self.name}"
 
 
 class Specialty(models.Model):
@@ -30,7 +51,7 @@ class Specialty(models.Model):
         verbose_name_plural = 'Специализации'
 
     def __str__(self):
-        return f"Specialty with pk={self.pk}"
+        return f"{self.title}"
 
 
 class Vacancy(models.Model):
@@ -41,14 +62,14 @@ class Vacancy(models.Model):
     description = models.TextField()
     salary_min = models.IntegerField()
     salary_max = models.IntegerField()
-    published_at = models.DateField()
+    published_at = models.DateField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'Вакансия'
         verbose_name_plural = 'Вакансии'
 
     def __str__(self):
-        return f"Vacancy with pk={self.pk}"
+        return f"{self.title}"
 
     def clean(self):
         if self.salary_min > self.salary_max:
@@ -60,10 +81,13 @@ class Vacancy(models.Model):
 
 class Application(models.Model):
     written_username = models.CharField(max_length=64)
-    written_number = models.CharField(max_length=32)
+    written_phone = models.CharField(max_length=32)
     written_cover_letter = models.TextField()
     vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name='applications')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='applications')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                             null=True,
+                             on_delete=models.SET_NULL,
+                             related_name='applications')
 
     class Meta:
         verbose_name = 'Отклик'
@@ -71,4 +95,38 @@ class Application(models.Model):
 
     def __str__(self):
         return f"Application with pk={self.pk}"
+
+
+class Resume(models.Model):
+
+    class WorkStatusChoices(models.TextChoices):
+        not_in_search = 'Не ищу работу', _('Не ищу работу')
+        consideration = 'Рассматриваю предложения', _('Рассматриваю предложения')
+        in_search = 'Ищу работу', _('Ищу работу')
+
+    class GradeChoices(models.TextChoices):
+        intern = 'intern', _('Intern')
+        junior = 'junior', _('Junior')
+        middle = 'middle', _('Middle')
+        senior = 'senior', _('Senior')
+        lead = 'lead', _('Lead')
+
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=64)
+    surname = models.CharField(max_length=64)
+    status = models.CharField(
+        max_length=32,
+        choices=WorkStatusChoices.choices,
+        default=WorkStatusChoices.in_search,
+    )
+    salary = models.IntegerField()
+    specialty = models.OneToOneField(Specialty, on_delete=models.CASCADE)
+    grade = models.CharField(
+        max_length=32,
+        choices=GradeChoices.choices,
+        default=GradeChoices.junior,
+    )
+    education = models.TextField()
+    experience = models.TextField()
+    portfolio = models.URLField()
 
